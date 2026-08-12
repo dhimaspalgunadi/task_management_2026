@@ -1,0 +1,116 @@
+// Skema database Sistem Manajemen Tugas Unit IT — 5 Kampus (SPK Katolik)
+// Aturan bisnis (SLA, jam kerja, validasi field) hidup di src/lib/taskUtils.ts,
+// bukan di sini — schema ini hanya mendefinisikan bentuk data & relasi.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum KampusCode {
+  KL
+  GS1
+  GS2
+  GK
+  ICON
+}
+
+enum StaffRole {
+  STAF_IT
+  KOORDINATOR_KAMPUS
+  KEPALA_IT_PUSAT
+}
+
+model Campus {
+  id        String   @id @default(cuid())
+  code      KampusCode @unique
+  name      String
+  createdAt DateTime @default(now())
+
+  staff     Staff[]
+  tasks     Task[]
+
+  @@map("campuses")
+}
+
+model Staff {
+  id           String    @id @default(cuid())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         StaffRole @default(STAF_IT)
+  campusId     String?
+  campus       Campus?   @relation(fields: [campusId], references: [id])
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+
+  assignedTasks Task[]    @relation("AssignedStaff")
+  taskLogs      TaskLog[]
+
+  @@index([campusId])
+  @@map("staff")
+}
+
+// Field & aturan validasi mengikuti reference/data-schema.md pada skill
+// it-task-management-sekolah. Nilai kategori/prioritas/status disimpan sebagai
+// string persis seperti didefinisikan di taskUtils.ts (satu sumber kebenaran),
+// bukan Prisma enum, supaya tidak ada duplikasi/divergensi aturan di dua tempat.
+model Task {
+  id                    String   @id @default(cuid())
+  idTugas               String   @unique // format [KAMPUS]-[YYYYMM]-[NNN]
+
+  campusId              String
+  campus                Campus   @relation(fields: [campusId], references: [id])
+
+  kategori              String
+  prioritas             String
+  deskripsi             String
+  pelapor               String
+
+  assignedStaffId       String?
+  assignedStaff         Staff?   @relation("AssignedStaff", fields: [assignedStaffId], references: [id])
+
+  jamInput              DateTime
+  jamMulaiProses        DateTime?
+  jamOutput             DateTime?
+  hasilEvaluasi         String?
+  catatanTindakLanjut   String?
+  jamPenyelesaian       DateTime?
+
+  status                String   @default("Baru")
+  noSuratPenugasan      String?
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  logs                  TaskLog[]
+
+  @@index([campusId])
+  @@index([status])
+  @@index([assignedStaffId])
+  @@map("tasks")
+}
+
+// Audit trail — dicatat setiap kali tugas berpindah tahap (Input -> Proses ->
+// Output -> Evaluasi -> Tindak Lanjut -> Penyelesaian), sesuai SOP di skill.
+model TaskLog {
+  id           String   @id @default(cuid())
+  taskId       String
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  fromStatus   String?
+  toStatus     String
+  note         String?
+
+  changedById  String?
+  changedBy    Staff?   @relation(fields: [changedById], references: [id])
+
+  createdAt    DateTime @default(now())
+
+  @@index([taskId])
+  @@map("task_logs")
+}
