@@ -3,7 +3,7 @@
 Aplikasi web untuk memonitor pekerjaan staf IT di 5 kampus (KL, GS1, GS2, GK, Icon)
 mengikuti alur kerja 6 tahap: **Input → Proses → Output → Evaluasi → Tindak Lanjut → Penyelesaian**.
 
-Dibangun dengan Next.js (App Router), Prisma ORM, PostgreSQL (Netlify DB / Neon), dan NextAuth.
+Dibangun dengan Next.js (App Router), Prisma ORM, PostgreSQL (Netlify Database), dan NextAuth.
 
 ## Fitur
 
@@ -42,25 +42,34 @@ Buka http://localhost:3000/login. Kredensial demo (password sama untuk semua aku
 
 **Ganti semua password demo sebelum digunakan di produksi.**
 
-## Deploy ke Netlify (dengan Netlify DB / Neon Postgres)
+## Deploy ke Netlify (dengan Netlify Database)
+
+Proyek ini memakai [Netlify Database](https://docs.netlify.com/build/data-and-storage/netlify-db/)
+(paket `@netlify/database`) — Postgres yang otomatis disediakan Netlify saat deploy, tanpa perlu
+daftar ke penyedia database lain. `src/lib/prisma.ts` dan `scripts/netlify-migrate.mjs` sudah
+dikonfigurasi untuk memakai koneksi ini otomatis kalau env var `DATABASE_URL` belum diisi manual.
 
 1. Push repo ini ke GitHub, lalu hubungkan ke [Netlify](https://app.netlify.com) sebagai site baru.
    Build command & publish directory sudah dikonfigurasi di `netlify.toml`
    (memakai `@netlify/plugin-nextjs`).
-2. Aktifkan **Netlify DB** (Postgres bertenaga Neon) di dashboard site Netlify, atau jalankan
-   `netlify db init` dari Netlify CLI di root project. Ini akan menyediakan connection string.
-3. Di **Site settings → Environment variables**, set:
-   - `DATABASE_URL` — connection string dari Netlify DB / Neon (harus tersedia saat build, karena
-     `netlify.toml` menjalankan `prisma migrate deploy` sebagai bagian dari build)
+2. Karena `@netlify/database` sudah ada di `package.json`, Netlify akan otomatis menyediakan
+   database Postgres untuk site ini saat build/deploy — tidak ada tombol tambahan yang perlu
+   diklik.
+3. Di **Site settings → Environment variables**, set dua ini secara manual (tidak otomatis):
    - `AUTH_SECRET` — string acak (`openssl rand -base64 32`)
    - `AUTH_URL` — URL produksi site, mis. `https://nama-site.netlify.app`
-4. Deploy. Setelah deploy pertama sukses, jalankan seed sekali via Netlify CLI:
+
+   (`DATABASE_URL` tidak perlu diisi manual — diambil otomatis dari Netlify Database. Kalau kamu
+   memang punya Postgres sendiri dan ingin memakainya, isi `DATABASE_URL` manual dan itu akan
+   dipakai lebih dulu daripada Netlify Database.)
+4. Deploy. Setelah deploy pertama sukses, jalankan seed sekali lewat Netlify CLI (agar terkoneksi
+   ke database production yang sama):
    ```bash
+   netlify link          # hubungkan folder lokal ke site Netlify ini
    netlify env:pull .env.production
-   DATABASE_URL="<connection-string-produksi>" npm run db:seed
+   DATABASE_URL="$(grep NETLIFY_DATABASE_URL .env.production | cut -d= -f2-)" npm run db:seed
    ```
-   atau jalankan `prisma migrate deploy` + seed dari environment mana pun yang punya akses ke
-   `DATABASE_URL` produksi.
+   Kalau env var-nya bernama beda, cek dulu isinya dengan `netlify env:list`.
 
 ## Skrip yang tersedia
 
