@@ -4,18 +4,18 @@ import { seedDatabase } from "@/lib/seedData";
 
 /**
  * Endpoint sekali-pakai untuk mengisi data awal (5 kampus, staf demo, contoh
- * tugas) ke database production, dipanggil manual sekali lewat curl/Postman
- * dengan header x-seed-token yang cocok dengan env var SEED_TOKEN.
- * Aman dipanggil berkali-kali (idempotent, pakai upsert).
+ * tugas) ke database production. Dikunci token yang harus cocok dengan env
+ * var SEED_TOKEN — boleh dikirim lewat header x-seed-token (curl/Postman)
+ * atau query string ?token=... (supaya bisa dipicu cukup dengan buka link di
+ * browser). Aman dipanggil berkali-kali (idempotent, pakai upsert).
  */
-export async function POST(req: NextRequest) {
+async function runSeed(providedToken: string | null) {
   const expected = process.env.SEED_TOKEN;
   if (!expected) {
     return NextResponse.json({ error: "SEED_TOKEN belum diset di environment variables" }, { status: 503 });
   }
 
-  const provided = req.headers.get("x-seed-token");
-  if (provided !== expected) {
+  if (providedToken !== expected) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -26,4 +26,12 @@ export async function POST(req: NextRequest) {
     console.error(err);
     return NextResponse.json({ error: "Seed gagal", detail: String(err) }, { status: 500 });
   }
+}
+
+export async function POST(req: NextRequest) {
+  return runSeed(req.headers.get("x-seed-token"));
+}
+
+export async function GET(req: NextRequest) {
+  return runSeed(req.nextUrl.searchParams.get("token"));
 }
