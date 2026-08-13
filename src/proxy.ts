@@ -10,8 +10,7 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
   const { pathname } = req.nextUrl;
 
-  const isPublic =
-    pathname === "/login" || pathname.startsWith("/api/auth") || pathname === "/api/admin/seed";
+  const isPublic = pathname === "/login" || pathname.startsWith("/api/auth");
   if (!isLoggedIn && !isPublic) {
     const loginUrl = new URL("/login", req.nextUrl.origin);
     loginUrl.searchParams.set("callbackUrl", pathname);

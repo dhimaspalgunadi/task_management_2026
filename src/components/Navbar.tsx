@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
-import { LogOut, Sparkles, PlusCircle } from "lucide-react";
+import { LogOut, Sparkles, PlusCircle, KeyRound } from "lucide-react";
 
 const ROLE_LABEL: Record<string, string> = {
   STAF_IT: "Staf IT",
@@ -46,6 +46,14 @@ export default function Navbar() {
               </p>
             </div>
           </div>
+
+          <Link
+            href="/account/password"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm ring-1 ring-gray-200 transition hover:bg-purple-50 hover:text-purple-600"
+            title="Ganti Password"
+          >
+            <KeyRound size={16} />
+          </Link>
 
           <button
             onClick={() => signOut({ callbackUrl: "/login" })}
