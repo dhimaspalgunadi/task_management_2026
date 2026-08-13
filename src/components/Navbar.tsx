@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { LogOut, Sparkles, PlusCircle, KeyRound } from "lucide-react";
+import { LogOut, Sparkles, PlusCircle, KeyRound, Users } from "lucide-react";
 import { logoutAction } from "@/actions/auth";
 
 const ROLE_LABEL: Record<string, string> = {
@@ -47,6 +47,16 @@ export default function Navbar() {
               </p>
             </div>
           </div>
+
+          {session.user.role === "KEPALA_IT_PUSAT" && (
+            <Link
+              href="/admin/users"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm ring-1 ring-gray-200 transition hover:bg-purple-50 hover:text-purple-600"
+              title="Manajemen User"
+            >
+              <Users size={16} />
+            </Link>
+          )}
 
           <Link
             href="/account/password"
