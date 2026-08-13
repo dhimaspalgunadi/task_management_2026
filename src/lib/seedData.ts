@@ -2,9 +2,8 @@
  * Data awal: 5 kampus (KL, GS1, GS2, GK, ICON), staf IT 2-4 orang per kampus,
  * 1 Kepala IT Pusat, dan beberapa contoh tugas demo di berbagai tahap alur kerja.
  *
- * Dipakai oleh prisma/seed.ts (CLI, lokal) dan src/app/api/admin/seed/route.ts
- * (endpoint sekali-pakai untuk mengisi database production) — supaya datanya
- * konsisten dan tidak duplikasi logika.
+ * Dipakai oleh prisma/seed.ts (CLI, lokal) — satu sumber kebenaran data seed
+ * supaya tidak duplikasi logika.
  */
 import type { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
@@ -29,8 +28,14 @@ const STAFF_PLAN: Record<string, string[]> = {
   ICON: ["Kurnia Ramadhan", "Lestari Wulandari"],
 };
 
+/**
+ * PENTING: pertahankan digit (0-9), jangan hanya [^a-z] — kode kampus seperti
+ * "GS1"/"GS2" mengandung angka. Regex lama membuang digit, sehingga email
+ * "koordinator.GS1" dan "koordinator.GS2" sama-sama menjadi "koordinator.gs.@..."
+ * dan saling menimpa (bug nyata yang pernah terjadi di production).
+ */
 function slugEmail(name: string, domain: string): string {
-  return name.toLowerCase().replace(/[^a-z]+/g, ".") + "@" + domain;
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, ".") + "@" + domain;
 }
 
 export async function seedDatabase(prisma: PrismaClient): Promise<{ log: string[] }> {

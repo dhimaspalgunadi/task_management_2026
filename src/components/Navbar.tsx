@@ -56,7 +56,16 @@ export default function Navbar() {
           </Link>
 
           <button
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={async () => {
+              try {
+                await signOut({ callbackUrl: "/login", redirect: true });
+              } catch {
+                // fallback kalau signOut() gagal diam-diam — sengaja hard reload
+                // (bukan router.push) supaya session state benar-benar bersih.
+                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+                window.location.href = "/login";
+              }
+            }}
             className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm ring-1 ring-gray-200 transition hover:bg-red-50 hover:text-red-500"
             title="Keluar"
           >
