@@ -1,5 +1,10 @@
-import { auth } from "@/auth";
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
+import { authConfig } from "@/auth.config";
+
+// Pakai config ringan (tanpa Prisma/bcrypt) — bukan "@/auth" penuh — karena
+// Edge Middleware tidak bisa memuat native addon Prisma.
+const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
   const isLoggedIn = !!req.auth;
