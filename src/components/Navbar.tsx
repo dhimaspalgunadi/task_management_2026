@@ -1,8 +1,9 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { LogOut, Sparkles, PlusCircle, KeyRound } from "lucide-react";
+import { logoutAction } from "@/actions/auth";
 
 const ROLE_LABEL: Record<string, string> = {
   STAF_IT: "Staf IT",
@@ -55,22 +56,15 @@ export default function Navbar() {
             <KeyRound size={16} />
           </Link>
 
-          <button
-            onClick={async () => {
-              try {
-                await signOut({ callbackUrl: "/login", redirect: true });
-              } catch {
-                // fallback kalau signOut() gagal diam-diam — sengaja hard reload
-                // (bukan router.push) supaya session state benar-benar bersih.
-                // eslint-disable-next-line @next/next/no-location-assign-relative-destination
-                window.location.href = "/login";
-              }
-            }}
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm ring-1 ring-gray-200 transition hover:bg-red-50 hover:text-red-500"
-            title="Keluar"
-          >
-            <LogOut size={16} />
-          </button>
+          <form action={logoutAction}>
+            <button
+              type="submit"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white text-gray-500 shadow-sm ring-1 ring-gray-200 transition hover:bg-red-50 hover:text-red-500"
+              title="Keluar"
+            >
+              <LogOut size={16} />
+            </button>
+          </form>
         </div>
       </div>
     </header>
