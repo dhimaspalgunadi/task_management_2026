@@ -122,11 +122,14 @@ export async function seedDatabase(prisma: PrismaClient): Promise<{ log: string[
   ];
 
   const now = new Date();
-  let counter = 1;
+  // Nomor urut per kampus (bukan counter global) — supaya konsisten dengan
+  // cara createTask() menomori tugas asli (nomor tertinggi per kampus + 1).
+  const counters: Record<string, number> = {};
   for (const s of sampleTasks) {
     const campus = campusRecords.get(s.kampus)!;
     const jamInput = new Date(now.getTime() - s.hoursAgo * 60 * 60 * 1000);
-    const idTugas = generateTaskId(s.kampus, jamInput, counter++);
+    counters[s.kampus] = (counters[s.kampus] ?? 0) + 1;
+    const idTugas = generateTaskId(s.kampus, jamInput, counters[s.kampus]);
     const staffForCampus = createdStaff.find((st) => st.campusCode === s.kampus && st.role === "STAF_IT");
 
     const exists = await prisma.task.findUnique({ where: { idTugas } });
