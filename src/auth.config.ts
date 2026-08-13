@@ -9,6 +9,10 @@ import type { NextAuthConfig } from "next-auth";
  * runtime, bukan Edge).
  */
 export const authConfig: NextAuthConfig = {
+  // Wajib untuk deploy di platform selain Vercel (mis. Netlify) — tanpa ini
+  // Auth.js menolak host dari request header dan bisa gagal diam-diam pada
+  // aksi yang bergantung pada URL request (mis. redirect saat signOut).
+  trustHost: true,
   session: { strategy: "jwt" },
   pages: { signIn: "/login" },
   providers: [],
