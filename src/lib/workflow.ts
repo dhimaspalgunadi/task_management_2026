@@ -61,15 +61,25 @@ export async function createTask(input: {
   const period = new Date(input.jamInput);
   const periodStart = `${period.getFullYear()}${String(period.getMonth() + 1).padStart(2, "0")}`;
 
-  const count = await prisma.task.count({
+  const { generateTaskId } = await import("@/lib/taskUtils");
+
+  // Nomor urut berikutnya = urutan tertinggi yang sudah dipakai + 1, BUKAN
+  // jumlah baris (COUNT) — kalau ada gap di penomoran (mis. dari data seed
+  // yang tidak berurutan sempurna per kampus), COUNT bisa menghasilkan ID
+  // yang sudah dipakai dan gagal karena idTugas harus unik.
+  const existing = await prisma.task.findMany({
     where: {
       campusId: input.campusId,
       idTugas: { startsWith: `${input.kampusCode}-${periodStart}-` },
     },
+    select: { idTugas: true },
   });
+  const maxUrut = existing.reduce((max, t) => {
+    const n = parseInt(t.idTugas.slice(t.idTugas.lastIndexOf("-") + 1), 10);
+    return Number.isFinite(n) && n > max ? n : max;
+  }, 0);
 
-  const { generateTaskId } = await import("@/lib/taskUtils");
-  const idTugas = generateTaskId(input.kampusCode, period, count + 1);
+  const idTugas = generateTaskId(input.kampusCode, period, maxUrut + 1);
 
   const task = await prisma.task.create({
     data: {
