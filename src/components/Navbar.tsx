@@ -30,9 +30,11 @@ export default function Navbar() {
         <div className="flex items-center gap-3">
           <Link
             href="/tasks/new"
-            className="hidden items-center gap-1.5 rounded-full bg-gradient-to-r from-purple-600 to-pink-500 px-4 py-2 text-sm font-semibold text-white shadow-md transition hover:opacity-90 sm:flex"
+            title="Tugas Baru"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-r from-purple-600 to-pink-500 text-white shadow-md transition hover:opacity-90 sm:h-auto sm:w-auto sm:gap-1.5 sm:rounded-full sm:px-4 sm:py-2 sm:text-sm sm:font-semibold"
           >
-            <PlusCircle size={16} /> Tugas Baru
+            <PlusCircle size={16} />
+            <span className="hidden sm:inline">Tugas Baru</span>
           </Link>
 
           <div className="flex items-center gap-2 rounded-full bg-white px-3 py-1.5 shadow-sm ring-1 ring-purple-100">
