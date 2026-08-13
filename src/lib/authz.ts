@@ -25,6 +25,11 @@ export function canApproveCompletion(role: string): boolean {
   return role === ROLES.KOORDINATOR_KAMPUS || role === ROLES.KEPALA_IT_PUSAT;
 }
 
+/** Hanya Kepala IT Pusat yang boleh mengelola akun staf (tambah/ubah/nonaktifkan/hapus). */
+export function isKepalaItPusat(role: string): boolean {
+  return role === ROLES.KEPALA_IT_PUSAT;
+}
+
 export async function requireSession(): Promise<SessionUser | null> {
   const session = await auth();
   if (!session?.user) return null;
